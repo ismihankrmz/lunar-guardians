@@ -51,18 +51,23 @@ Tamam, bu donma (freeze) problemi muhtemelen çarpışma sesini tekrar tekrar oy
 
 1. Sesin her çarpışmada düzgün çalınabilmesi için cloneNode() kullan:
 Kodun şu şekilde olsun:
+
 function carpismaSesiCal() {
+
     const carpma = carpismaSesi.cloneNode(); // Aynı sesten yeni bir kopya
+    
     carpma.play();
 }
 
-2. Eğer yukarıdaki zaten buysa ama hala donuyorsa:
+3. Eğer yukarıdaki zaten buysa ama hala donuyorsa:
 Donmaya neden olan yer şurası olabilir:
 Çarpışma kontrolü içinde carpismaSesiCal() çok sık ve art arda tetikleniyorsa (örneğin her frame’de çarpışma devam ediyorsa), o zaman sürekli ses oluşturuluyor demektir.
 Bunu engellemek için:
 
 let carpistiMi = false;
+
 function carpismalariKontrolEt() {
+
     for (let i = dusmanlar.length - 1; i >= 0; i--) {
         const d = dusmanlar[i];
         const dx = d.x - koruyucuX;
@@ -110,7 +115,9 @@ dusmanOlustur();
 Sadece şu satırda olması gerekiyor:
 
 setInterval(() => {
+
     if (!oyunBitti) dusmanOlustur();
+    
 }, 1000);
 
 Başka bir yerde (özellikle sayfa açılırken, window.onload gibi şeylerde) varsa, onu da sil.
@@ -147,12 +154,18 @@ Modern tarayıcılar (özellikle Chrome) otomatik olarak ses çalmaya izin verme
 Eğer kullanıcı oyunu birkaç kez başlatırsa arkaPlanMuzik.play() tekrar çağrılır. Bu bazen hata verir. O yüzden eklemeyi düşünebilirsin:
 
 function oyunBaslat() {
+
     if (arkaPlanMuzik.paused) {
+    
         arkaPlanMuzik.play();
     }
+    
     setInterval(() => {
+    
         if (!oyunBitti) dusmanOlustur();
+        
     }, 1500);
+    
     ciz();
 }
 
