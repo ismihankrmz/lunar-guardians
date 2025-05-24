@@ -3,6 +3,8 @@
 - Oyunun Bağlantısı:(https://ben-boo.itch.io/lunar-guardians)
 - Oyunun Youtube Videosu:(https://youtu.be/H8VI8lzG9Lo)
 Lunar Guardians,HTML5 ve JavaScript kullanılarak geliştirilen Canvas tabanlı 2D bir aksiyon oyunudur.Oyuncu, Ay'ı koruyan bir koruyucu gezegeni kontrol eder ve uzaydan gelen düşmanlara karşı Ay'ı korumaya çalışır.Zamanla azalan can ve seviye sistemiyle, refleks ve strateji becerileri bir arada kullanılır.
+![Oyun Görseli](gorsel/ekrangoruntusu1.png)
+![Oyun Görseli](gorsel/ekrangoruntusu2.png)
 
 # oyun-mekanikleri
 Can:Oyun başladığında belirli bir can ile başlarsınız.Düşmanlar Ay'a çarptıkça can azalır.
