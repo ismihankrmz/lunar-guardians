@@ -14,7 +14,7 @@ Oyun Başlatma ve Tekrar Deneme:Oyun başladığında ve bittiğinde oyuna başl
 - HTML5
 - JavaScript
 - Canvas
-- Yapay zeka araçları için detay:("Al.md")
+- Yapay zeka araçları için detay:("AI.md")
   
 # kullanılan-assetler
 - ay görseli:[stickpng.com](https://www.stickpng.com/img/nature/space/planets/earth)
