@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Lunar Guardians</title>
+    <style>
+        /*sayfanin genel stil ayarlari*/
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+        }
+
+        /*canvas elementi icin stil*/
+        canvas {
+            background-color: #1a1a2e;
+            border: 2px solid white;
+        }
+
+        /*baslat butonunun konumu ve stili*/
+        #baslatBtn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 40px;
+            font-size: 22px;
+            font-weight: 700;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: hsl(333, 59%, 55%);
+            background: rgba(255, 182, 193, 0.4);
+            border: 2px solid #a6004c;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(255, 182, 193, 0.6);
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.3s ease, transform 0.2s ease;
+            z-index: 1000;
+        }
+
+        /*baslat butonu uzerine gelince olusan efekt*/
+        #baslatBtn:hover {
+            background: rgba(255, 182, 193, 0.7);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        /*seviye atlama mesaj kutusu icin stil*/
+        #seviyeMesaji {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 192, 203, 0.8);
+            color: #a6004c;
+            font-size: 32px;
+            font-weight: bold;
+            padding: 20px 40px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            display: none;
+            z-index: 999;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /*oyun bitti mesaj kutusu icin stil*/
+        #oyunBittiMesaji {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 182, 193, 0.4);
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(255, 182, 193, 0.6);
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            z-index: 1000;
+        }
+
+        /*oyun bitti mesajindaki paragraf icin stil*/
+        #oyunBittiMesaji p {
+            font-size: 24px;
+            color: #a6004c;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        /*tekrar dene butonunun stili*/
+        #tekrarDeneBtn {
+            position: relative;
+            padding: 15px 40px;
+            font-size: 22px;
+            font-weight: 700;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #a6004c;
+            background: rgba(255, 182, 193, 0.4);
+            border: 2px solid #a6004c;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(255, 182, 193, 0.6);
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        /*tekrar dene butonunun efekti*/
+        #tekrarDeneBtn:hover {
+            background: rgba(255, 182, 193, 0.7);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <!--oyunu baslatmak icin kullanilan buton-->
+    <button id="baslatBtn">Oyunu Başlat</button>
+    <!--oyun alanini cizecegimiz canvas elementi-->
+    <canvas id="oyunAlani" width="1000" height="600"></canvas>
+    <!--seviye atlama mesajini gostermek icin kullanilan div-->
+    <div id="seviyeMesaji">SEVİYE ATLADINIZ!</div>
+    <!--oyun bittiginde gosterilecek mesaj ve tekrar deneme butonu-->
+    <div id="oyunBittiMesaji">
+        <p>OYUN BİTTİ!</p>
+        <button id="tekrarDeneBtn" onclick="oyunuSifirla()">TEKRAR DENE!</button>
+    </div>
+    <audio id="clickSound" src="tiklamaSesi.mp3"></audio>
+    <script>
+        //canvas elementi ve 2d cizim baglamini aliyoruz
+        const canvas = document.getElementById("oyunAlani");
+        const ctx = canvas.getContext("2d");
+
+        //arka plan ve oyun objeleri icin resim nesneleri olusturuyoruz
+        const arkaPlan1 = new Image();
+        arkaPlan1.src = "1.png";
+
+        const arkaPlan2 = new Image();
+        arkaPlan2.src = "3.png";
+
+        const gezegenGorsel = new Image();
+        gezegenGorsel.src = "2.png";
+
+        const koruyucuGorsel = new Image();
+        koruyucuGorsel.src = "4.png";
+
+        const dusmanGorsel = new Image();
+        dusmanGorsel.src = "enemy.png";
+
+        const clickSound = document.getElementById("clickSound");
+
+        //arka planda calacak muzik dosyasini yukluyoruz
+        const arkaPlanMuzik = new Audio("bgmusic.mp3");
+        arkaPlanMuzik.volume = 0.3;
+        //oyun basladigi anda arka plan muzigininde calmasi sagliyoruz
+        document.getElementById("baslatBtn").addEventListener("click", () => {
+            clickSound.play();
+            oyunBasladi = true;
+            arkaPlanMuzik.play();
+            oyunBaslat();
+            document.getElementById("baslatBtn").style.display = "none";//oyun basladiktan sonra baslat butonunu gizliyoruz
+        });
+
+        // ortadaki gezegen yani ayin konumunu ayarliyoruz canvasin tam ortasinda yer aliyor
+        const ayX = canvas.width / 2;
+        const ayY = canvas.height / 2;
+        const ayYaricap = 130;
+
+        // koruyucu gezegenin konunmunu ayin etrafinda donecek sekilde ayarliyoruz
+        let aci = 0; // baslangic acisi (radyan cinsinden)
+        const uzaklik = 200; // koruyucunun aya olan uzakligi
+        const koruyucuYaricap = 30;
+
+        // klavye tus durumlarini tutmak icin degiskenler tanimliyoruz
+        let sagBasili = false;
+        let solBasili = false;
+
+        //oyundaki durumlari tutmak icin degiskenler tanimliyoruz
+        let can = 3;
+        let skor = 0;
+        let seviye = 1;
+        let seviyeAtlandi = false;
+        let oyunBitti = false;
+        let oyunBasladi = false;
+        //dusmanlarin olusturulma araligini kontrol etmek icin degisken tanimliyoruz(setInterval referansi)
+        let dusmanInterval = null;
+
+        const dusmanlar = [];//dusmanlari tutmak icin bir dizi tanimliyoruz
+        function dusmanOlustur() {
+            // rastgele bir taraftan dusman cikacak (0:ust , 1:sag, 2:alt, 3:sol)
+            const taraf = Math.floor(Math.random() * 4);
+            let x, y, vx, vy;
+
+            // Dusman hizi mevcut seviyeye gore artacak
+            const hiz = 0.3 + seviye * 0.15;
+            //dusmanin baslangic konumunu ve hiz bilesenlerini hangi taraftan ciktigina gore belirliyoruz
+            switch (taraf) {
+                case 0: // ustten
+                    x = Math.random() * canvas.width;
+                    y = -30;
+                    vx = (ayX - x) / 200 * hiz;//aya dogru x hizi
+                    vy = (ayY - y) / 200 * hiz;//aya dogru y hizi
+                    break;
+                case 1: // sagdan
+                    x = canvas.width + 30;
+                    y = Math.random() * canvas.height;
+                    vx = (ayX - x) / 200 * hiz;
+                    vy = (ayY - y) / 200 * hiz;
+                    break;
+                case 2: // alttan
+                    x = Math.random() * canvas.width;
+                    y = canvas.height + 30;
+                    vx = (ayX - x) / 200 * hiz;
+                    vy = (ayY - y) / 200 * hiz;
+                    break;
+                case 3: // soldan
+                    x = -30;
+                    y = Math.random() * canvas.height;
+                    vx = (ayX - x) / 200 * hiz;
+                    vy = (ayY - y) / 200 * hiz;
+                    break;
+            }
+            //yeni dusman nesnesi olusturulur ve diziye eklenir.
+            dusmanlar.push({ x, y, vx, vy, yaricap: 20 });
+        }
+
+        //seviye arttikca ekranda seviye atlama mesajini gosterecek fonksiyon
+        function seviyeAtla() {
+            seviye++;
+            const mesaj = document.getElementById("seviyeMesaji");//seviye mesaji divini sec
+            mesaj.style.display = "block";//mesaji gorunur yap
+            setTimeout(() => {
+                mesaj.style.display = "none";
+            }, 1000);//1 saniye sonra mesaji gizle
+        }
+
+        //koruyucu gezegen ile dusmanlar carpisinca cikacak olan carpisma sesini ayarliyoruz
+        function carpismaSesiCal() {
+            const ses = new Audio("carpisma.mp3");
+            ses.volume = 0.5;
+            ses.play();
+        }
+        // oyunucunun klavyeden sag veya sol ok tuslarina basip basmadigni takip eder
+        //basildiignda ilgili yon icin degiskenler true olur birakildiginda false olur
+        //boylece oyundaki koruyucu gezegen saga ya da sola doner durur
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "ArrowRight") sagBasili = true;
+            if (event.key === "ArrowLeft") solBasili = true;
+        });
+
+        document.addEventListener("keyup", function (event) {
+            if (event.key === "ArrowRight") sagBasili = false;
+            if (event.key === "ArrowLeft") solBasili = false;
+        });
+
+        // ay gorselini canvas uzerinde ortalayarak ciziyoruz
+        function ayiCiz() {
+            const genislik = ayYaricap * 2;
+            const yukseklik = ayYaricap * 2;
+            const x = ayX - ayYaricap;
+            const y = ayY - ayYaricap;
+
+            ctx.drawImage(gezegenGorsel, x, y, genislik, yukseklik);
+        }
+
+        // koruyucuyu ayin etrafinda aciyi degistirerek donecek sekilde ciziyoruz
+        function koruyucuyuCiz() {
+            if (sagBasili) aci += 0.05;
+            if (solBasili) aci -= 0.05;
+
+            // yeni konum hesapliyoruz
+            const koruyucuX = ayX + uzaklik * Math.cos(aci);
+            const koruyucuY = ayY + uzaklik * Math.sin(aci);
+
+            const genislik = koruyucuYaricap * 2;
+            const yukseklik = koruyucuYaricap * 2;
+            const x = koruyucuX - koruyucuYaricap;
+            const y = koruyucuY - koruyucuYaricap;
+            //koruyucu gorselini hesapladigimiz konuma gore ortalayarak ciziyoruz
+            ctx.drawImage(koruyucuGorsel, x, y, genislik, yukseklik);
+            //carpisma kontrolu icin koruyucunun guncel pozisyonunu donduruyoruz
+            return { x: koruyucuX, y: koruyucuY, yaricap: koruyucuYaricap };
+        }
+
+        function dusmanCizGuncelle() {
+            //tum dusmanlari silme kolayligi olsun diye geriye dogru donguyle kontrol ediyoruz
+            for (let i = dusmanlar.length - 1; i >= 0; i--) {
+                const d = dusmanlar[i];
+                d.x += d.vx;//dusmanlarin konumunu hizlarina gore guncelliyoruz
+                d.y += d.vy;
+                //dusman gorselini guncellenen konuma ciziyoruz
+                ctx.drawImage(dusmanGorsel, d.x - d.yaricap, d.y - d.yaricap, d.yaricap * 2, d.yaricap * 2);
+
+                // ay ile dusmanin carpisma mesafesini hesapliyoruz
+                const dxAy = d.x - ayX;
+                const dyAy = d.y - ayY;
+                const mesafeAy = Math.sqrt(dxAy * dxAy + dyAy * dyAy);
+
+                //eger dusman aya carptiysa can azaliyor ses oynatiliyor,dusman listeden cikiyor
+                if (mesafeAy < d.yaricap + ayYaricap) {
+                    can--;
+                    carpismaSesiCal();
+                    dusmanlar.splice(i, 1);
+
+                    //can kalmadiysa oyun bitiyor,arka plan muzigi duruyor ve oyun bitti mesaji ekranda gosteriliyor
+                    if (can <= 0) {
+                        oyunBitti = true;
+                        arkaPlanMuzik.pause();
+                        document.getElementById("oyunBittiMesaji").style.display = "block";
+                    }
+                    continue;// o dusman icin dongu devam etmesin diye ekledim
+                }
+
+                //koruyucu ile dusmanin carpisma mesafesini hesapliyoruz
+                const koruyucu = koruyucuyuCiz();
+                const dxKoruyucu = d.x - koruyucu.x;
+                const dyKoruyucu = d.y - koruyucu.y;
+                const mesafeKoruyucu = Math.sqrt(dxKoruyucu * dxKoruyucu + dyKoruyucu * dyKoruyucu);
+
+                //eger dusman koruyucuya carptiysa skor artiyor carpisma sesi cikiyor ve dusman kaldiriliyor
+                if (mesafeKoruyucu < d.yaricap + koruyucu.yaricap) {
+                    skor++;
+                    carpismaSesiCal();
+                    dusmanlar.splice(i, 1);
+
+                    //skor her 10 a katlandiginda seviye atlaniyor
+                    if (skor % 10 === 0) {
+                        seviyeAtla();
+                    }
+                    continue;
+                }
+
+                // eger dusman ekran disina cok uzaklasirsa performans icin temizliyoruz
+                if (d.x < -50 || d.x > canvas.width + 50 || d.y < -50 || d.y > canvas.height + 50) {
+                    dusmanlar.splice(i, 1);
+                }
+            }
+        }
+
+        // skor can ve seviye bilgisini tutup kullaniciya gosteriyoruz
+        function skorVeCanCiz() {
+            ctx.fillStyle = "#a6004c";
+            ctx.font = "20px bold Arial";
+            ctx.fillText("CAN: " + can, 20, 30);
+            ctx.fillText("SKOR: " + skor, 20, 60);
+            ctx.fillText("SEVİYE: " + seviye, 20, 90);
+        }
+
+        // ana cizim fonksiyonu
+        function ciz() {
+            if (oyunBitti) return;//oyun bittiyse cizim duracak
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);//onceki kareyi temizliyoruz
+
+            // arka planlari ciziyoruz
+            ctx.drawImage(arkaPlan1, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(arkaPlan2, 0, 0, canvas.width, canvas.height);
+
+            ayiCiz();
+
+            koruyucuyuCiz();
+
+            dusmanCizGuncelle();
+
+            skorVeCanCiz();
+
+            //seviye atlandiginda ortada seviye atlama mesaji gosteriliyor
+            if (seviyeAtlandi) {
+                ctx.font = "bold 30px Arial";
+                ctx.fillStyle = "red";
+                ctx.textAlign = "center";
+                ctx.fillText("SEVİYE ATLADINIZ!", canvas.width / 2, canvas.height / 2);
+            }
+
+            requestAnimationFrame(ciz);//bir sonraki kare icin ciz fonksiyonunu tekrar cagiriyoruz
+        }
+
+        //oyun baslayinca arka plan muzigini de baslatiyoruz
+        function oyunBaslat() {
+            if (arkaPlanMuzik.paused) {
+                arkaPlanMuzik.play();
+            }
+            if (!dusmanInterval) {// 1 saniyede bir dusman uretmeyi baslatiyoruz
+                dusmanInterval = setInterval(() => {
+                    if (!oyunBitti && oyunBasladi)
+                        dusmanOlustur();
+                }, 1000);
+            }
+            ciz();//ana cizim fonksiyonu
+        }
+
+        // resimler yuklendikten sonra oyunu baslatmak icin kontrol sayaci ekliyoruz
+        let yuklenen = 0;
+        function yuklemeKontrol() {
+            yuklenen++;//yuklenen her gorselde sayac artiyor
+            if (yuklenen === 5) oyunBaslat();//tum gorseller yuklendiyse oyun baslatiliyor
+        }
+        //gorseller yuklendiginde kontrol fonksiyonlarini cagiriyoruz
+        arkaPlan1.onload = yuklemeKontrol;
+        arkaPlan2.onload = yuklemeKontrol;
+        gezegenGorsel.onload = yuklemeKontrol;
+        koruyucuGorsel.onload = yuklemeKontrol;
+        dusmanGorsel.onload = yuklemeKontrol;
+
+        //bu fonksiyon tekrar dene butonuna basildiginda oyunu bastan baslatiyor ve degerleri sifirliyor
+        function oyunuSifirla() {
+            clearInterval(dusmanInterval);
+            dusmanInterval = null;
+            dusmanlar.length = 0;
+            seviye = 1;
+            can = 3;
+            skor = 0;
+            oyunBitti = false;
+            arkaPlanMuzik.currentTime = 0;// arka plan muzigini basa sariyoruz
+            arkaPlanMuzik.play();
+            dusmanInterval = setInterval(dusmanOlustur, 1000);// yeniden dusman uretmeye basliyoruz
+            requestAnimationFrame(ciz);//oyunu yeniden baslatiyoruz
+        }
+        //kullanici tekrar dene butonuna bastiginda calisip oyunu sifirlayip bastan baslatiyor.
+        document.getElementById("tekrarDeneBtn").addEventListener("click", function () {
+            clickSound.play();
+            oyunuSifirla();
+            document.getElementById("oyunBittiMesaji").style.display = "none";
+        });
+
+    </script>
+
+</body>
+
+</html>
