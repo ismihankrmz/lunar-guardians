@@ -26,7 +26,11 @@ CapCut, Shotcut veya Canva gibi programlarda sesi timeline üzerinde videonun ba
 Oyuna başla butonuna ve tekrar dene butonuna tıklanınca bir tık sesi çıksın istiyorum.
 
 *ChatGPT:*  
-HTML’ye <audio> etiketiyle ses eklenmeli. JavaScript içinde ilgili butonlara onclick fonksiyonu ile document.getElementById("tiklamaSesi").play(); kodu yazılmalı.
+HTML’ye <audio> etiketiyle ses eklenmeli. JavaScript içinde ilgili butonlara onclick fonksiyonu ile
+
+document.getElementById("tiklamaSesi").play(); 
+
+kodu yazılmalı.
 
 ---
 
@@ -50,6 +54,7 @@ Tamam, bu donma (freeze) problemi muhtemelen çarpışma sesini tekrar tekrar oy
 Çözüm: Her çarpışmada aynı ses nesnesini tekrar kullanmak yerine, yeni bir ses nesnesi yaratmak daha güvenli bir yöntemdir. Ama bunu da çok sık yaparsan performans düşebilir. En ideal yöntem:
 
 1. Sesin her çarpışmada düzgün çalınabilmesi için cloneNode() kullan:
+   
 Kodun şu şekilde olsun:
 
 function carpismaSesiCal() {
@@ -64,8 +69,8 @@ Donmaya neden olan yer şurası olabilir:
 Çarpışma kontrolü içinde carpismaSesiCal() çok sık ve art arda tetikleniyorsa (örneğin her frame’de çarpışma devam ediyorsa), o zaman sürekli ses oluşturuluyor demektir.
 Bunu engellemek için:
 
-let carpistiMi = false;
 
+let carpistiMi = false;
 function carpismalariKontrolEt() {
 
     for (let i = dusmanlar.length - 1; i >= 0; i--) {
@@ -105,13 +110,17 @@ O zaman bu şu demek: setInterval oyun başlamadan önce bir yerlerde çağrıl�
 
 Kontrol 1: Sayfa açıldığında oyunBaslat() çağrılıyor mu?
 HTML dosyanda veya script'in en altında şunu arat:
+
 oyunBaslat();
+
 Eğer böyle bir satır varsa hemen sil ya da yorum satırı yap:
 // oyunBaslat(); // BUNU SİL
 
 Kontrol 2: dusmanOlustur() başka nerede çağrılıyor?
 Kodlarında şunu ara:
+
 dusmanOlustur();
+
 Sadece şu satırda olması gerekiyor:
 
 setInterval(() => {
@@ -124,7 +133,9 @@ Başka bir yerde (özellikle sayfa açılırken, window.onload gibi şeylerde) v
 
 Ekstra Kontrol: oyun hemen çiziliyor olabilir
 Eğer şu satırı da en başta çağırıyorsan:
+
 ciz();
+
 Bu da düşmanları çalıştırabilir. Çünkü ciz() fonksiyonun içinde dusmanCizGuncelle() varsa, o da düşmanları hareket ettirir.
 
 Ne Yap?
@@ -153,8 +164,8 @@ Modern tarayıcılar (özellikle Chrome) otomatik olarak ses çalmaya izin verme
 2. Aynı sesi birden fazla kez play etme:
 Eğer kullanıcı oyunu birkaç kez başlatırsa arkaPlanMuzik.play() tekrar çağrılır. Bu bazen hata verir. O yüzden eklemeyi düşünebilirsin:
 
-function oyunBaslat() {
 
+function oyunBaslat() {
     if (arkaPlanMuzik.paused) {
     
         arkaPlanMuzik.play();
