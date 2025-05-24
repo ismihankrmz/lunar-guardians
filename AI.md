@@ -71,6 +71,7 @@ Bunu engellemek için:
 
 
 let carpistiMi = false;
+
 function carpismalariKontrolEt() {
 
     for (let i = dusmanlar.length - 1; i >= 0; i--) {
@@ -166,6 +167,7 @@ Eğer kullanıcı oyunu birkaç kez başlatırsa arkaPlanMuzik.play() tekrar ça
 
 
 function oyunBaslat() {
+
     if (arkaPlanMuzik.paused) {
     
         arkaPlanMuzik.play();
